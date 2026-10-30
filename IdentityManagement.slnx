@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="IdentityManagement.Common/IdentityManagement.Common.csproj" />
+  <Project Path="IdentityManagement.DataLayer/IdentityManagement.DataLayer.csproj" />
+  <Project Path="IdentityManagement.DomainClasses/IdentityManagement.DomainClasses.csproj" />
+  <Project Path="IdentityManagement.Services/IdentityManagement.Services.csproj" />
+  <Project Path="IdentityManagement.WebApp/IdentityManagement.WebApp.csproj" Id="3c8d6d3d-fa4e-477d-86d8-b3da6500621b" />
+</Solution>

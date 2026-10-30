@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IdentityManagement.Common\IdentityManagement.Common.csproj" />
+    <ProjectReference Include="..\IdentityManagement.DataLayer\IdentityManagement.DataLayer.csproj" />
+    <ProjectReference Include="..\IdentityManagement.DomainClasses\IdentityManagement.DomainClasses.csproj" />
+  </ItemGroup>
+
+</Project>
