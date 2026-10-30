@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\IdentityManagement.Common\IdentityManagement.Common.csproj" />
     <ProjectReference Include="..\IdentityManagement.DataLayer\IdentityManagement.DataLayer.csproj" />
     <ProjectReference Include="..\IdentityManagement.DomainClasses\IdentityManagement.DomainClasses.csproj" />
