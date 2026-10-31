@@ -1,4 +1,6 @@
-﻿namespace IdentityManagement.WebApp;
+﻿using IdentityManagement.DataLayer.Context;
+
+namespace IdentityManagement.WebApp;
 
 public static class Program
 {
@@ -35,7 +37,7 @@ public static class Program
         void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             services.AddHttpContextAccessor();
-            services.AddScoped<IUnitOfWork, ApplicationDbContext>();
+            services.AddScoped<IUnitOfWork, IdentityManagementDbContext>();
         }
     }
 }
