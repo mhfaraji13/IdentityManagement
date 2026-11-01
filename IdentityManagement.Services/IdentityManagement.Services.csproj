@@ -8,6 +8,9 @@
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="UAParser" Version="3.1.47" />
+	</ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\IdentityManagement.Common\IdentityManagement.Common.csproj" />
     <ProjectReference Include="..\IdentityManagement.DataLayer\IdentityManagement.DataLayer.csproj" />

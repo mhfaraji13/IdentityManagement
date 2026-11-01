@@ -1,4 +1,5 @@
 ﻿using IdentityManagement.DataLayer.Context;
+using IdentityManagement.Services;
 var builder = WebApplication.CreateBuilder(args);
 ConfigureLogging(builder.Logging, builder.Environment, builder.Configuration);
 ConfigureServices(builder.Services, builder.Configuration);

@@ -14,5 +14,7 @@ namespace IdentityManagement.Services
         string GetCurrentRequestDeviceDetailsHash();
         string? GetUserTokenDeviceDetailsHash(ClaimsIdentity? claimsIdentity);
         string? GetCurrentUserTokenDeviceDetailsHash();
+        bool HasUserTokenValidDeviceDetails(ClaimsIdentity? claimsIdentity);
+        bool HasCurrentUserTokenValidDeviceDetails();
     }
 }
