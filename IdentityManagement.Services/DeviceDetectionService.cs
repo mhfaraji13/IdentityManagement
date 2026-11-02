@@ -14,20 +14,33 @@ namespace IdentityManagement.Services
 
         private readonly ISecurityService _securityService = securityService ?? throw new ArgumentNullException(nameof(securityService));
 
-
+        /// <summary>
+        ///  darkhast joziiyat-e dastgah-e request-e al'an
+        /// </summary>
+        /// <returns></returns>
         public string GetCurrentRequestDeviceDetails() => GetDeviceDetails(_httpContextAccessor.HttpContext);
-        
+        /// <summary>
+        /// gereftan-e hash shodeye joziiyat-e dastgahe request-e fe'li
+        /// </summary>
+        /// <returns></returns>
 
         public string GetCurrentRequestDeviceDetailsHash()
         {
-            throw new NotImplementedException();
+            return GetDeviceDetailsHash(_httpContextAccessor.HttpContext);
         }
-
+        /// <summary>
+        /// gereftan-e hash shodeye joziiyat-e dastgahe fe'li --- Token-user
+        /// </summary>
+        /// <returns></returns>
         public string? GetCurrentUserTokenDeviceDetailsHash()
         {
-            throw new NotImplementedException();
+            return GetUserTokenDeviceDetailsHash(_httpContextAccessor.HttpContext?.User.Identity as ClaimsIdentity);
         }
-
+        /// <summary>
+        /// gereftan-e joziiyat-e dastgah
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public string GetDeviceDetails(HttpContext? context)
         {
             var ua = GetUserAgent(context);
@@ -35,27 +48,73 @@ namespace IdentityManagement.Services
             {
                 return "unKnown";
             }
-
+            var client = Parser.GetDefault().Parse(ua);
+            var deviceInfo = client.Device.Family;
+            var browserInfo = $"{client.UA.Family}, {client.UA.Major}.{client.UA.Minor}";
+            var osInfo = $"{client.OS.Family} , {client.OS.Major}.{client.OS.Minor}";
+            return $"{deviceInfo},{browserInfo},{osInfo}";
         }
+        /// <summary>
+        /// gereftan-e hash shodeye joziiyat-e dastgah
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
 
         public string GetDeviceDetailsHash(HttpContext? context)
         {
-            throw new NotImplementedException();
+            return _securityService.GetSha256Hash(GetDeviceDetails(context));
         }
-
+        /// <summary>
+        /// gereftan-e hash shodeye joziiyat-e dastgah ba token user
+        /// </summary>
+        /// <param name="claimsIdentity"></param>
+        /// <returns></returns>
         public string? GetUserTokenDeviceDetailsHash(ClaimsIdentity? claimsIdentity)
         {
-            throw new NotImplementedException();
+            if (claimsIdentity == null)
+            {
+                return null;
+            }
+            if (claimsIdentity.Claims == null)
+            {
+                return null;
+            }
+            if (!claimsIdentity.Claims.Any())
+            {
+                return null;
+            }
+            Claim? systemClaim = claimsIdentity.FindFirst(ClaimTypes.System);
+            if (systemClaim == null)
+            {
+                return null;
+            }
+            return systemClaim.Value;
         }
-
+        /// <summary>
+        /// aya user fe'li token-e joziiiyat-e dastgahesh valid shode
+        /// </summary>
+        /// <returns></returns>
         public bool HasCurrentUserTokenValidDeviceDetails()
         {
-            throw new NotImplementedException();
+            return HasUserTokenValidDeviceDetails(_httpContextAccessor.HttpContext?.User.Identity as ClaimsIdentity);
         }
-
+        /// <summary>
+        /// aya user tokenesh valid shode babat-e joziiyat-e dastgah 
+        /// </summary>
+        /// <param name="claimsIdentity"></param>
+        /// <returns></returns>
         public bool HasUserTokenValidDeviceDetails(ClaimsIdentity? claimsIdentity)
         {
-            throw new NotImplementedException();
+            return string.Equals(GetCurrentRequestDeviceDetailsHash(), GetUserTokenDeviceDetailsHash(claimsIdentity), StringComparison.Ordinal);
+        }
+
+        private static string? GetUserAgent(HttpContext? context)
+        {
+            if (context == null)
+            {
+                return null;
+            }
+            return context.Request.Headers.TryGetValue(HeaderNames.UserAgent, out var userAgent) ? userAgent.ToString() : null;
         }
     }
 }
