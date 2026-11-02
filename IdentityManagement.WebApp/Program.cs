@@ -7,16 +7,21 @@ var webApp = builder.Build();
 
 
 
-webApp.MapGet("/", () => "Hello World!");
+webApp.MapGet("/", (IDeviceDetectionService deviceDetection) =>
+    deviceDetection.GetCurrentRequestDeviceDetails());
 
 webApp.Run();
 
 
 void ConfigureServices(IServiceCollection services, IConfiguration configuration)
 {
-    services.AddScoped<IDeviceDetectionService, DeviceDetectionService>();
     services.AddHttpContextAccessor();
-    services.AddScoped<IUnitOfWork, IdentityManagementDbContext>();
+    services.AddSingleton<ISecurityService, SecurityService>();
+    services.AddScoped<IDeviceDetectionService, DeviceDetectionService>();
+
+    // TODO: register with AddDbContext once a connection string exists.
+    // As written, this fails DI validation at startup (no DbContextOptions).
+    // services.AddScoped<IUnitOfWork, IdentityManagementDbContext>();
 }
 void ConfigureLogging(ILoggingBuilder loggingBuilder, IHostEnvironment environment, IConfiguration configuration)
 {
