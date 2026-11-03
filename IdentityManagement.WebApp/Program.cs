@@ -1,5 +1,7 @@
 ﻿using IdentityManagement.DataLayer.Context;
 using IdentityManagement.Services;
+
+
 var builder = WebApplication.CreateBuilder(args);
 ConfigureLogging(builder.Logging, builder.Environment, builder.Configuration);
 ConfigureServices(builder.Services, builder.Configuration);
@@ -14,9 +16,13 @@ webApp.Run();
 
 void ConfigureServices(IServiceCollection services, IConfiguration configuration)
 {
-    services.AddScoped<IDeviceDetectionService, DeviceDetectionService>();
+
     services.AddHttpContextAccessor();
     services.AddScoped<IUnitOfWork, IdentityManagementDbContext>();
+    services.AddScoped<IDeviceDetectionService, DeviceDetectionService>();
+    services.AddScoped<IUsersService, UsersService>();
+    services.AddScoped<IRolesService, RolesService>();
+    services.AddScoped<ISecurityService, SecurityService>();
 }
 void ConfigureLogging(ILoggingBuilder loggingBuilder, IHostEnvironment environment, IConfiguration configuration)
 {
