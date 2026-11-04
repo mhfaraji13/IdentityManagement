@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Security.Claims;
-using System.Text;
+
 
 namespace IdentityManagement.Services
 {
@@ -27,6 +24,8 @@ namespace IdentityManagement.Services
                 return;
             }
 
+            //User has token.
+
             if (!_deviceDetectionService.HasUserTokenValidDeviceDetails(claimsIdentity))
 
             {
@@ -35,12 +34,16 @@ namespace IdentityManagement.Services
 
             }
 
+            // device valid 
+
             var serialNumberClaim = claimsIdentity.FindFirst(ClaimTypes.SerialNumber);
             if (serialNumberClaim == null)
             {
                 await HandleUnauthorizedRequest(context);
                 return;
             }
+
+
             var userIdString = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
             if (!int.TryParse(userIdString, System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out var userId))
             {
