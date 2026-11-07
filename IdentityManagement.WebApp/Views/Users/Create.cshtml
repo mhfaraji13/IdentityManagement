@@ -1,0 +1,109 @@
+﻿@model IdentityManagement.WebApp.ViewModels.CreateUserViewModel
+
+@{
+    ViewData["Title"] = "Create User";
+}
+
+<div class="container mt-5">
+
+    <div class="card shadow">
+        <div class="card-header">
+            <h4>Create New User</h4>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-controller="Users"
+                  asp-action="Create"
+                  method="post">
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="UserName" class="form-label">
+                        Username
+                    </label>
+
+                    <input asp-for="UserName" class="form-control" />
+
+                    <span asp-validation-for="UserName"
+                          class="text-danger">
+                    </span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">
+                        Password
+                    </label>
+
+                    <input asp-for="Password" class="form-control" />
+
+                    <span asp-validation-for="Password"
+                          class="text-danger">
+                    </span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DisplayName" class="form-label">
+                        Display Name
+                    </label>
+
+                    <input asp-for="DisplayName" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">
+                        Email
+                    </label>
+
+                    <input asp-for="Email" class="form-control" />
+
+                    <span asp-validation-for="Email"
+                          class="text-danger">
+                    </span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PhoneNumber" class="form-label">
+                        Phone Number
+                    </label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">+98</span>
+                        <input asp-for="PhoneNumber"
+                               class="form-control"
+                               type="text"
+                               inputmode="numeric"
+                               maxlength="10"
+                               minlength="10"
+                               pattern="[0-9]{10}"
+                               placeholder="9121234567" />
+                    </div>
+
+                    <span asp-validation-for="PhoneNumber"
+                          class="text-danger">
+                    </span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Create User
+                </button>
+
+                <a asp-controller="Users"
+                   asp-action="Index"
+                   class="btn btn-secondary">
+                    Cancel
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

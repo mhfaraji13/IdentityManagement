@@ -51,9 +51,12 @@ namespace IdentityManagement.Services
                 return;
             }
             var user = await _usersService.FindUserAsync(userId);
-            if (user == null || !string.Equals(user.SerialNumber, serialNumberClaim.Value, StringComparison.Ordinal) || !user.IsActive)
+            if (user == null ||
+                 !string.Equals(user.SerialNumber, serialNumberClaim.Value, StringComparison.Ordinal) ||
+                 !user.IsActive)
             {
                 await HandleUnauthorizedRequest(context);
+                return;
             }
 
             await _usersService.UpdateUserLastActivityDateAsync(userId);

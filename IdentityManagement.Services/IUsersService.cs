@@ -11,5 +11,15 @@ namespace IdentityManagement.Services
         Task<User?> CheckCredsAsync(string username, string password);
         ValueTask<User?> FindUserAsync(int userId);
         Task UpdateUserLastActivityDateAsync(int userId);
+
+        //============================================
+
+
+        Task<List<User>> GetAllUsersAsync();
+        Task<bool> CreateUserAsync(User user);
+
+        Task<User?> GetUserForEditAsync(int userId);
+
+        Task<bool> UpdateUserAsync(User user);
     }
 }

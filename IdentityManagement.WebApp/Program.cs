@@ -134,7 +134,7 @@ void ConfigureDatabase(IApplicationBuilder app)
     var scopeFactory = app.ApplicationServices
         .GetRequiredService<IServiceScopeFactory>();
 
-     var scope = scopeFactory.CreateScope();
+    using var scope = scopeFactory.CreateScope();
 
     var dbInitializer = scope.ServiceProvider
         .GetRequiredService<IDbInitializerService>();
