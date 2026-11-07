@@ -21,5 +21,7 @@ namespace IdentityManagement.Services
         Task<User?> GetUserForEditAsync(int userId);
 
         Task<bool> UpdateUserAsync(User user);
+
+        Task<bool> DeleteUserAsync(int userId);
     }
 }

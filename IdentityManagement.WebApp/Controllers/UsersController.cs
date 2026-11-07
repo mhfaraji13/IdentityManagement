@@ -125,5 +125,31 @@ namespace IdentityManagement.WebApp.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var currentUserId = User.FindFirst(
+                System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (int.TryParse(currentUserId, out var loggedInUserId) &&
+                loggedInUserId == id)
+            {
+                TempData["ErrorMessage"] = "You cannot delete your own account.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var result = await _usersService.DeleteUserAsync(id);
+
+            if (!result)
+            {
+                return NotFound();
+            }
+
+            TempData["SuccessMessage"] = "User deleted successfully.";
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

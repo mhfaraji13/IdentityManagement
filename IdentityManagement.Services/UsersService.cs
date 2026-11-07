@@ -54,7 +54,22 @@ namespace IdentityManagement.Services
 
             return true;
         }
+        public async Task<bool> DeleteUserAsync(int userId)
+        {
+            var user = await _users.FirstOrDefaultAsync(
+                x => x.Id == userId);
 
+            if (user == null)
+            {
+                return false;
+            }
+
+            _users.Remove(user);
+
+            await _uow.SaveChangesAsync();
+
+            return true;
+        }
 
         public Task<User?> CheckCredsAsync(string username, string password)
         {
