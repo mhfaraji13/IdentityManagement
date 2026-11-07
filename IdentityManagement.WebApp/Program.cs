@@ -9,9 +9,11 @@ ConfigureLogging(builder.Logging, builder.Environment, builder.Configuration);
 ConfigureServices(builder.Services, builder.Configuration);
 var webApp = builder.Build();
 
+ConfigureMiddlewares(webApp, webApp.Environment);
 
+ConfigureEndpoints(webApp);
 
-webApp.MapGet("/", () => "Hello World!");
+ConfigureDatabase(webApp);
 
 webApp.Run();
 
@@ -26,6 +28,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddScoped<IRolesService, RolesService>();
     services.AddScoped<ICookieValidatorService, CookieValidatorService>();
     services.AddScoped<ISecurityService, SecurityService>();
+    services.AddScoped<IDbInitializerService, DbInitializerService>();
 
     services.AddDbContext<IdentityManagementDbContext>(options =>
     {
@@ -36,6 +39,12 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             serverDbContextOptionsBuilder.CommandTimeout(minutes);
             serverDbContextOptionsBuilder.EnableRetryOnFailure();
         });
+    });
+
+    services.AddAuthorization(options =>
+    {
+        options.AddPolicy(CustomRoles.Admin, policy => policy.RequireRole(CustomRoles.Admin));
+        options.AddPolicy(CustomRoles.User, policy => policy.RequireRole(CustomRoles.User));
     });
 
     services.AddAuthentication(options =>
@@ -64,6 +73,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             }
         };
     });
+
+    services.AddControllersWithViews();
 }
 void ConfigureLogging(ILoggingBuilder loggingBuilder, IHostEnvironment environment, IConfiguration configuration)
 {
@@ -78,6 +89,59 @@ void ConfigureLogging(ILoggingBuilder loggingBuilder, IHostEnvironment environme
     loggingBuilder.AddFile("Logs/app-{Date}.txt", minimumLevel: LogLevel.Debug);
 
     loggingBuilder.AddConfiguration(configuration.GetSection(key: "Logging"));
+}
+
+void ConfigureMiddlewares(IApplicationBuilder app, IHostEnvironment env)
+{
+    if(!env.IsDevelopment())
+    {
+        app.UseHsts();
+    }
+
+    app.UseHttpsRedirection();
+
+    app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "text/plain; charset=utf-8";
+
+        await context.Response.WriteAsync(
+            "An unexpected error occurred.");
+    }));
+    app.UseStatusCodePages();
+
+    app.UseStaticFiles();
+
+    app.UseRouting();
+
+    app.UseAuthentication();
+
+    app.UseAuthorization();
+}
+
+void ConfigureEndpoints(IApplicationBuilder app)
+{
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapControllerRoute(
+            name: "default",
+            pattern: "{controller=Home}/{action=Index}/{id?}");
+    });
+}
+
+void ConfigureDatabase(IApplicationBuilder app)
+{
+    var scopeFactory = app.ApplicationServices
+        .GetRequiredService<IServiceScopeFactory>();
+
+     var scope = scopeFactory.CreateScope();
+
+    var dbInitializer = scope.ServiceProvider
+        .GetRequiredService<IDbInitializerService>();
+
+    dbInitializer.Initialize();
+
+    dbInitializer.SeedData();
 }
 
 
