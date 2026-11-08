@@ -1,8 +1,6 @@
 ﻿using IdentityManagement.DomainClasses;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 
 namespace IdentityManagement.DataLayer.Context
 {
@@ -11,6 +9,7 @@ namespace IdentityManagement.DataLayer.Context
         public virtual DbSet<User> Users { get; set; } = default!;
         public virtual DbSet<Role> Roles { get; set; } = default!;
         public virtual DbSet<UserRole> UserRoles { get; set; } = default!;
+        public DbSet<PasswordResetOtp> PasswordResetOtps { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

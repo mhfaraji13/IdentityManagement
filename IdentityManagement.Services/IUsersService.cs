@@ -23,5 +23,6 @@ namespace IdentityManagement.Services
         Task<bool> UpdateUserAsync(User user);
 
         Task<bool> DeleteUserAsync(int userId);
+        Task<User?> FindByUserNameAsync(string userName);
     }
 }

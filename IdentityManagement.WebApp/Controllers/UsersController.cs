@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace IdentityManagement.WebApp.Controllers
 {
     [Authorize(Roles = "Admin")]
-    public class UsersController(IUsersService usersService) : Controller
+    public class UsersController(
+    IUsersService usersService,
+    IRolesService rolesService) : Controller
     {
         private readonly IUsersService _usersService = usersService;
+        private readonly IRolesService _rolesService = rolesService;
 
         public async Task<IActionResult> Index()
         {
@@ -151,5 +154,91 @@ namespace IdentityManagement.WebApp.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> ManageRoles(int id)
+        {
+            var user = await _usersService.GetUserForEditAsync(id);
+
+            if (user == null)
+                return NotFound();
+
+            var allRoles = await _rolesService.GetAllRolesAsync();
+            var userRoles = await _rolesService.FindUserRolesAsync(id);
+
+            var model = new ManageUserRolesViewModel
+            {
+                UserId = user.Id,
+                UserName = user.UserName,
+                Roles = allRoles.Select(role => new RoleItemViewModel
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name,
+                    IsSelected = userRoles.Any(
+                        userRole => userRole.Id == role.Id)
+                }).ToList()
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ManageRoles(
+            ManageUserRolesViewModel model)
+        {
+            var currentUserId = User.FindFirst(
+                System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (int.TryParse(currentUserId, out var loggedInUserId) &&
+                loggedInUserId == model.UserId)
+            {
+                TempData["ErrorMessage"] =
+                    "You cannot change your own roles.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            var user = await _usersService.GetUserForEditAsync(model.UserId);
+
+            if (user == null)
+                return NotFound();
+
+            var allRoles = await _rolesService.GetAllRolesAsync();
+            var currentRoles =
+                await _rolesService.FindUserRolesAsync(model.UserId);
+
+            var selectedRoleIds = model.Roles
+                .Where(x => x.IsSelected)
+                .Select(x => x.RoleId)
+                .ToHashSet();
+
+            var currentRoleIds = currentRoles
+                .Select(x => x.Id)
+                .ToHashSet();
+
+            foreach (var role in allRoles)
+            {
+                if (selectedRoleIds.Contains(role.Id) &&
+                    !currentRoleIds.Contains(role.Id))
+                {
+                    await _rolesService.AddUserToRoleAsync(
+                        model.UserId, role.Id);
+                }
+                else if (!selectedRoleIds.Contains(role.Id) &&
+                         currentRoleIds.Contains(role.Id))
+                {
+                    await _rolesService.RemoveUserFromRoleAsync(
+                        model.UserId, role.Id);
+                }
+            }
+
+            TempData["SuccessMessage"] = "User roles updated successfully.";
+
+            return RedirectToAction(nameof(ManageRoles),
+                new { id = model.UserId });
+        }
+
     }
 }

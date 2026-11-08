@@ -70,6 +70,11 @@ namespace IdentityManagement.Services
 
             return true;
         }
+        public Task<User?> FindByUserNameAsync(string userName)
+        {
+            return _users.FirstOrDefaultAsync(
+                x => x.UserName == userName);
+        }
 
         public Task<User?> CheckCredsAsync(string username, string password)
         {

@@ -11,15 +11,21 @@ using System.Security.Claims;
 namespace IdentityManagement.WebApp.Controllers
 {
     public class AccountController(
-    IUsersService usersService,
-    IRolesService rolesService,
-    IDeviceDetectionService deviceDetectionService,
-    IConfiguration configuration) : Controller
+     IUsersService usersService,
+     IRolesService rolesService,
+     IDeviceDetectionService deviceDetectionService,
+     IPasswordResetService passwordResetService,
+     IConfiguration configuration,
+     IWebHostEnvironment environment) : Controller
     {
         private readonly IUsersService _usersService = usersService;
         private readonly IRolesService _rolesService = rolesService;
         private readonly IDeviceDetectionService _deviceDetectionService = deviceDetectionService;
         private readonly IConfiguration _configuration = configuration;
+        private readonly IPasswordResetService _passwordResetService =
+    passwordResetService;
+
+        private readonly IWebHostEnvironment _environment = environment;
 
         [AllowAnonymous]
         [HttpGet]
@@ -50,7 +56,7 @@ namespace IdentityManagement.WebApp.Controllers
 
                 ModelState.AddModelError(
                     string.Empty,
-                    "نام کاربری یا رمز عبور اشتباه است.");
+                    "The username or password is incorrect.");
 
                 return View(model);
             }
@@ -80,6 +86,155 @@ namespace IdentityManagement.WebApp.Controllers
 
             return RedirectToAction("Index", "Dashboard");
         }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View(new ForgotPasswordViewModel());
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(
+            ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _usersService.FindByUserNameAsync(
+                model.UserName);
+
+            if (user == null || !user.IsActive)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "If the account exists, a password reset process can be started.");
+
+                return View(model);
+            }
+
+            var otp = await _passwordResetService.GenerateOtpAsync(user.Id);
+
+            if (otp == null)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Unable to start the password reset process.");
+
+                return View(model);
+            }
+
+            TempData["PasswordResetUserId"] = user.Id;
+
+            if (_environment.IsDevelopment())
+            {
+                TempData["DevelopmentOtp"] = otp;
+            }
+
+            return RedirectToAction(nameof(VerifyOtp));
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult VerifyOtp()
+        {
+            if (TempData.Peek("PasswordResetUserId") is not int userId)
+                return RedirectToAction(nameof(ForgotPassword));
+
+            var model = new VerifyOtpViewModel
+            {
+                UserId = userId
+            };
+
+            return View(model);
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyOtp(VerifyOtpViewModel model)
+        {
+            if (TempData.Peek("PasswordResetUserId") is not int userId)
+                return RedirectToAction(nameof(ForgotPassword));
+
+            model.UserId = userId;
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var isValid = await _passwordResetService.VerifyOtpAsync(
+                userId,
+                model.Otp);
+
+            if (!isValid)
+            {
+                ModelState.AddModelError(
+                    nameof(model.Otp),
+                    "Invalid or expired OTP.");
+
+                return View(model);
+            }
+
+            TempData.Remove("PasswordResetUserId");
+            TempData["VerifiedPasswordResetUserId"] = userId;
+
+            return RedirectToAction(nameof(ResetPassword));
+        }
+
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            if (TempData.Peek("VerifiedPasswordResetUserId") is not int userId)
+                return RedirectToAction(nameof(ForgotPassword));
+
+            return View(new ResetPasswordViewModel
+            {
+                UserId = userId
+            });
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(
+    ResetPasswordViewModel model)
+        {
+            if (TempData.Peek("VerifiedPasswordResetUserId") is not int userId)
+                return RedirectToAction(nameof(ForgotPassword));
+
+            model.UserId = userId;
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _passwordResetService.ResetPasswordAsync(
+                userId,
+                model.NewPassword);
+
+            if (!result)
+            {
+                TempData.Remove("VerifiedPasswordResetUserId");
+
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Password reset failed. Please start the process again.");
+
+                return View(model);
+            }
+
+            TempData.Remove("VerifiedPasswordResetUserId");
+
+            TempData["SuccessMessage"] =
+                "Your password has been reset successfully. Please login.";
+
+            return RedirectToAction(nameof(Login));
+        }
+
+
 
         [Authorize]
         [HttpPost]

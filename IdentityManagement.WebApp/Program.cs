@@ -29,6 +29,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddScoped<ICookieValidatorService, CookieValidatorService>();
     services.AddScoped<ISecurityService, SecurityService>();
     services.AddScoped<IDbInitializerService, DbInitializerService>();
+    services.AddScoped<IPasswordResetService, PasswordResetService>();
 
     services.AddDbContext<IdentityManagementDbContext>(options =>
     {
