@@ -4,7 +4,7 @@ using System.Text;
 
 namespace IdentityManagement.Services
 {
-    public interface ISecurityService
+    public interface ISecurityService 
     {
         string GetSha256Hash(string input);
     }

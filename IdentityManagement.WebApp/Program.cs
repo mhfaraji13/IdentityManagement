@@ -2,6 +2,7 @@
 using IdentityManagement.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +29,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddScoped<IRolesService, RolesService>();
     services.AddScoped<ICookieValidatorService, CookieValidatorService>();
     services.AddScoped<ISecurityService, SecurityService>();
-    services.AddScoped<IDbInitializerService, DbInitializerService>();
+    services.AddSingleton<IDbInitializerService, DbInitializerService>();
     services.AddScoped<IPasswordResetService, PasswordResetService>();
 
     services.AddDbContext<IdentityManagementDbContext>(options =>
@@ -71,7 +72,16 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             {
                 var cookieValidatorService = context.HttpContext.RequestServices.GetRequiredService<ICookieValidatorService>();
                 return cookieValidatorService.ValidateAsync(context);
-            }
+            },
+            //OnSigningIn = async context =>
+            //{
+            //    var service = context.HttpContext.RequestServices.GetRequiredService<IUsersService>();
+            //    var userId = context.HttpContext.User.FindFirst(c => c.Type == ClaimTypes.UserData)?.Value;
+         
+            //    int.TryParse(userId, out int intUserId);
+            //    await service.UpdateUserLastActivityDateAsync();
+
+            //}
         };
     });
 
@@ -101,14 +111,23 @@ void ConfigureMiddlewares(IApplicationBuilder app, IHostEnvironment env)
 
     app.UseHttpsRedirection();
 
-    app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
+    app.Use(async (context, next) =>
     {
-        context.Response.StatusCode = 500;
-        context.Response.ContentType = "text/plain; charset=utf-8";
+        try
+        {
+            await next();
+        }
+        catch (Exception)
+        {
+            context.Response.Clear();
 
-        await context.Response.WriteAsync(
-            "An unexpected error occurred.");
-    }));
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "text/plain; charset=utf-8";
+
+            await context.Response.WriteAsync(
+                "An unexpected error occurred.");
+        }
+    });
     app.UseStatusCodePages();
 
     app.UseStaticFiles();
@@ -125,6 +144,15 @@ void ConfigureEndpoints(IApplicationBuilder app)
     app.UseEndpoints(endpoints =>
     {
         endpoints.MapControllerRoute(
+            name: "users-index",
+            pattern: "Users",
+            defaults: new
+            {
+                controller = "Users",
+                action = "Index"
+            });
+
+        endpoints.MapControllerRoute(
             name: "default",
             pattern: "{controller=Account}/{action=Login}/{id?}");
     });
@@ -132,17 +160,11 @@ void ConfigureEndpoints(IApplicationBuilder app)
 
 void ConfigureDatabase(IApplicationBuilder app)
 {
-    var scopeFactory = app.ApplicationServices
-        .GetRequiredService<IServiceScopeFactory>();
+    var s = app.ApplicationServices.GetRequiredService<IDbInitializerService>();
+    
+    s.Initialize();
 
-    using var scope = scopeFactory.CreateScope();
-
-    var dbInitializer = scope.ServiceProvider
-        .GetRequiredService<IDbInitializerService>();
-
-    dbInitializer.Initialize();
-
-    dbInitializer.SeedData();
+    s.SeedData();
 }
 
 

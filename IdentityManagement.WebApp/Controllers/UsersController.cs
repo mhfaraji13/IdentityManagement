@@ -14,6 +14,7 @@ namespace IdentityManagement.WebApp.Controllers
         private readonly IUsersService _usersService = usersService;
         private readonly IRolesService _rolesService = rolesService;
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var users = await _usersService.GetAllUsersAsync();

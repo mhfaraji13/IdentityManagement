@@ -8,6 +8,8 @@ namespace IdentityManagement.Services
 {
     public class SecurityService : ISecurityService
     {
+        
+
         public string GetSha256Hash(string input)
         {
             var byteValue = Encoding.UTF8.GetBytes(input);

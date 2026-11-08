@@ -1,0 +1,42 @@
+﻿@model IdentityManagement.WebApp.ViewModels.MyProfileViewModel
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title mb-4">My Profile</h4>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <div class="mb-3">
+            <label class="form-label">Username</label>
+            <p class="form-control">@Model.UserName</p>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Display Name</label>
+            <p class="form-control">@(Model.DisplayName ?? "-")</p>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <p class="form-control">@(Model.Email ?? "-")</p>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Phone Number</label>
+            <p class="form-control">@(Model.PhoneNumber ?? "-")</p>
+        </div>
+
+        <a asp-action="Edit" class="btn btn-primary">
+            Edit Profile
+        </a>
+    </div>
+</div>

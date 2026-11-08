@@ -6,14 +6,10 @@ using IdentityManagement.DomainClasses;
 namespace IdentityManagement.Services
 {
     public class DbInitializerService(
-     IServiceScopeFactory scopeFactory,
-     ISecurityService securityService) : IDbInitializerService
+     IServiceScopeFactory scopeFactory) : IDbInitializerService
     {
         private readonly IServiceScopeFactory _scopeFactory =
             scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
-
-        private readonly ISecurityService _securityService =
-            securityService ?? throw new ArgumentNullException(nameof(securityService));
 
         public void Initialize()
         {
@@ -32,6 +28,9 @@ namespace IdentityManagement.Services
 
             using var context =
                 serviceScope.ServiceProvider.GetService<IdentityManagementDbContext>()
+                ?? throw new InvalidOperationException("context is null");
+
+             var security = serviceScope.ServiceProvider.GetService<ISecurityService>() 
                 ?? throw new InvalidOperationException("context is null");
 
             // Add default roles
@@ -72,7 +71,7 @@ namespace IdentityManagement.Services
                     DisplayName = "Administrator",
                     IsActive = true,
                     LastLoggedIn = null,
-                    Password = _securityService.GetSha256Hash(input: "mhadmin123"),
+                    Password = security.GetSha256Hash(input: "mhadmin123"),
                     SerialNumber = Guid.NewGuid().ToString(format: "N")
                 };
 

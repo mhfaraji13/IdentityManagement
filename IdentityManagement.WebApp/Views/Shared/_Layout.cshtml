@@ -1,10 +1,8 @@
-﻿
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>@ViewData["Title"] - Identity Management</title>
 
     <link rel="shortcut icon" type="image/png"
@@ -17,60 +15,131 @@
 </head>
 
 <body>
-    <div class="page-wrapper" id="main-wrapper">
+    <div id="main-wrapper">
 
-        <!-- Horizontal Navigation -->
-        <aside class="left-sidebar horizontal-sidebar">
-            <div class="container-fluid">
+        <header class="app-header">
+            <nav class="navbar navbar-expand-lg container-fluid">
 
-                <div class="brand-logo">
-                    <a asp-controller="Dashboard" asp-action="Index">
-                        <img src="~/assets/images/logos/logo.svg"
-                             width="180" alt="Identity Management" />
-                    </a>
-                </div>
+                <!-- Logo -->
+                <a class="navbar-brand d-flex align-items-center"
+                   asp-controller="Dashboard"
+                   asp-action="Index">
+                    <img src="~/assets/images/logos/logo.svg"
+                         alt="Identity Management"
+                         width="150" />
+                </a>
 
-                <nav class="sidebar-nav">
-                    <ul id="sidebarnav">
+                <!-- Navigation -->
+                <div class="navbar-collapse show">
+                    <ul class="navbar-nav mx-auto flex-row align-items-center gap-3">
 
-                        <li class="sidebar-item">
-                            <a class="sidebar-link"
-                               asp-controller="Dashboard"
-                               asp-action="Index">
-                                <i class="ti ti-dashboard"></i>
-                                <span class="hide-menu">Dashboard</span>
-                            </a>
-                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                   asp-controller="Dashboard"
+                                   asp-action="Index">
+                                    <i class="ti ti-dashboard me-1"></i>
+                                    Dashboard
+                                </a>
+                            </li>
 
-                        <li class="sidebar-item">
-                            <a class="sidebar-link"
-                               asp-controller="Users"
-                               asp-action="Index">
-                                <i class="ti ti-users"></i>
-                                <span class="hide-menu">Users</span>
-                            </a>
-                        </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link"
+                                       asp-controller="Users"
+                                       asp-action="Index">
+                                        <i class="ti ti-users me-1"></i>
+                                        Users
+                                    </a>
+                                </li>
+                            }
+                        }
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link text-danger">
+                                    Admin Check: @User.IsInRole("Admin")
+                                </span>
+                            </li>
+
+                            <li class="nav-item">
+                                <span class="nav-link text-danger">
+                                    Roles:
+                                    @string.Join(", ",
+                                        User.Claims
+                                            .Where(c => c.Type ==
+                                                "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+                                            .Select(c => c.Value))
+                                </span>
+                            </li>
+                        }
 
                     </ul>
-                </nav>
-
-                <div class="user-info">
-                    <span>@User.Identity?.Name</span>
                 </div>
 
-            </div>
-        </aside>
+                <!-- Profile: authenticated users only -->
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="dropdown">
+                        <a class="nav-link p-0"
+                           href="#"
+                           id="profileDropdown"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
 
-        <!-- Page Content -->
-        <div class="body-wrapper">
+                            <img src="~/assets/images/profile/user-1.jpg"
+                                 alt="Profile"
+                                 width="40"
+                                 height="40"
+                                 class="rounded-circle" />
+                        </a>
 
+                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up"
+                             aria-labelledby="profileDropdown">
+
+                            <div class="message-body">
+
+                                <a class="dropdown-item d-flex align-items-center gap-2"
+                                   asp-controller="Profile"
+                                   asp-action="Index">
+                                    <i class="ti ti-user"></i>
+                                    View My Profile
+                                </a>
+
+                                <a class="dropdown-item d-flex align-items-center gap-2"
+                                   asp-controller="Profile"
+                                   asp-action="Edit">
+                                    <i class="ti ti-user-edit"></i>
+                                    Edit Profile
+                                </a>
+
+                                <form asp-controller="Account"
+                                      asp-action="Logout"
+                                      method="post">
+                                    <button type="submit"
+                                            class="dropdown-item d-flex align-items-center gap-2">
+                                        <i class="ti ti-logout"></i>
+                                        Logout
+                                    </button>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </nav>
+        </header>
+
+        <main class="body-wrapper">
             <div class="body-wrapper-inner">
                 <div class="container-fluid">
                     @RenderBody()
                 </div>
             </div>
-
-        </div>
+        </main>
 
     </div>
 
