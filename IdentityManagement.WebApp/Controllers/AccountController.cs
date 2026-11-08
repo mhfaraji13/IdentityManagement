@@ -89,6 +89,88 @@ namespace IdentityManagement.WebApp.Controllers
 
         [AllowAnonymous]
         [HttpGet]
+        public IActionResult Register()
+        {
+            return View(new RegisterViewModel());
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var roles = await _rolesService.GetAllRolesAsync();
+
+            var userRole = roles.FirstOrDefault(
+                x => x.Name == CustomRoles.User);
+
+            if (userRole == null)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Default user role is not available.");
+
+                return View(model);
+            }
+
+            var user = new User
+            {
+                UserName = model.UserName,
+                Password = model.Password,
+                DisplayName = model.DisplayName,
+                Email = model.Email,
+                PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber)
+                    ? null
+                    : "+98" + model.PhoneNumber
+            };
+
+            var created = await _usersService.CreateUserAsync(user);
+
+            if (!created)
+            {
+                ModelState.AddModelError(
+                    nameof(model.UserName),
+                    "This username is already taken.");
+
+                return View(model);
+            }
+
+            var createdUser = await _usersService.FindByUserNameAsync(
+                model.UserName);
+
+            if (createdUser == null)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Unable to complete registration.");
+
+                return View(model);
+            }
+
+            var roleAssigned = await _rolesService.AddUserToRoleAsync(
+                createdUser.Id,
+                userRole.Id);
+
+            if (!roleAssigned)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Unable to assign the default user role.");
+
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] =
+                "Your account has been created successfully. Please login.";
+
+            return RedirectToAction(nameof(Login));
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
         public IActionResult ForgotPassword()
         {
             return View(new ForgotPasswordViewModel());
